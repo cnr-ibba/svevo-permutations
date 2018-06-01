@@ -35,11 +35,6 @@ echo "job $PBS_JOBNAME started: `whoami` `hostname` `pwd` `date`."
 #                                        #
 ##########################################
 
-# Better to run this. Job will fail with unbounded (empty) variables, or a single error in the script
-set -e
-set -u
-set -o pipefail
-
 # activate conda environment
 source activate R-3.4
 
