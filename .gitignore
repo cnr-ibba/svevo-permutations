@@ -35,3 +35,4 @@ vignettes/*.pdf
 # archives and data
 ld099/
 ld099.zip
+.Rproj.user

@@ -1,5 +1,9 @@
 # set as working directory
-setwd("/home/danara/Documents/hierfstat/");
+# setwd("/home/danara/Documents/hierfstat/");
+
+# get current directory as basedir
+current_dir <- getwd()
+
 #### Load libraries ####
 library(adegenet)
 library(pegas)
@@ -11,17 +15,17 @@ library(windowscanr)
 library(dplyr)
 
 #### Fst function from pegas package modified  ####
-Fst_unibo <- function (x, pop = NULL) 
+Fst_unibo <- function (x, pop = NULL)
 {
-  if (any(getPloidy(x) != 2)) 
+  if (any(getPloidy(x) != 2))
     stop("Fst() requires diploid data")
   if (is.null(pop)) {
     pop <- x$population
-    if (is.null(pop)) 
+    if (is.null(pop))
       stop("no 'population' column in x")
   }
   else {
-    pop <- if (is.numeric(pop)) 
+    pop <- if (is.numeric(pop))
       x[, pop]
     else factor(pop)
   }
@@ -42,7 +46,7 @@ Fst_unibo <- function (x, pop = NULL)
       for (k in seq_along(allel)) {
         for (l in seq_along(genot)) {
           ag <- unlist(strsplit(genot[l], "/"))
-          if (sum(ag %in% allel[k]) == 1) 
+          if (sum(ag %in% allel[k]) == 1)
             h[[j]][i, k] <- h[[j]][i, k] + tmp$genotype[l]
         }
       }
@@ -56,12 +60,12 @@ Fst_unibo <- function (x, pop = NULL)
     nC <- (N - sum(nBYpop^2)/N)/(r - 1)
     ptild <- p[[j]]/(2 * nBYpop)
     pbar <- colSums(p[[j]])/(2 * N)
-    s2 <- colSums(nBYpop * (ptild - rep(pbar, each = r))^2)/((r - 
+    s2 <- colSums(nBYpop * (ptild - rep(pbar, each = r))^2)/((r -
                                                                 1) * nbar)
     hbar <- colSums(h[[j]])/N
     A <- pbar * (1 - pbar) - (r - 1) * s2/r
     a <- nbar * (s2 - (A - hbar/4)/(nbar - 1))/nC
-    b <- nbar * (A - (2 * nbar - 1) * hbar/(4 * nbar))/(nbar - 
+    b <- nbar * (A - (2 * nbar - 1) * hbar/(4 * nbar))/(nbar -
                                                           1)
     c <- hbar/2
     obj[j, 1] <- sum(a)/sum(a + b + c)
@@ -72,9 +76,9 @@ Fst_unibo <- function (x, pop = NULL)
 
 ##### Import and transform the data ####
 # Import the table with chr and pos for each SNP, required for sliding window
-POS <- read.csv("/home/danara/Documents/hierfstat/ROD/snp_chr_pos.csv", header= TRUE, stringsAsFactors = FALSE, sep = ",")
+POS <- read.csv(file.path(current_dir, "ld099/snp_chr_pos.csv"), header= TRUE, stringsAsFactors = FALSE, sep = ",")
 # DEW
-DEW <- read.table("/home/danara/Documents/hierfstat/Fst-4-pops/ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_DEW_ROD.txt", sep = "\t", dec = ".", h = T,comment.char = "?")
+DEW <- read.table(file.path(current_dir, "ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_DEW_ROD.txt"), sep = "\t", dec = ".", h = T,comment.char = "?")
 for(i in 12:ncol(DEW)){
   DEW[, i] <-  gsub("^AA$", "A-A", DEW[, i])
   DEW[, i] <-  gsub("^TT$", "B-B", DEW[, i])
@@ -85,7 +89,7 @@ DEWt <- cbind(rep("DEW", nrow(DEWt)),DEWt)
 names(DEWt)[1] <- "population"
 
 # DWL
-DWL <- read.table("/home/danara/Documents/hierfstat/Fst-4-pops/ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_DWL_ROD.txt", sep = "\t", dec = ".", h = T,comment.char = "?")
+DWL <- read.table(file.path(current_dir, "ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_DWL_ROD.txt"), sep = "\t", dec = ".", h = T,comment.char = "?")
 for(i in 12:ncol(DWL)){
   DWL[, i] <-  gsub("^AA$", "A-A", DWL[, i])
   DWL[, i] <-  gsub("^TT$", "B-B", DWL[, i])
@@ -96,7 +100,7 @@ DWLt <- cbind(rep("DWL", nrow(DWLt)),DWLt)
 names(DWLt)[1] <- "population"
 
 # DWC
-DWC <- read.table("/home/danara/Documents/hierfstat/Fst-4-pops/ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_DWC_ROD.txt", sep = "\t", dec = ".", h = T,comment.char = "?")
+DWC <- read.table(file.path(current_dir, "ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_DWC_ROD.txt"), sep = "\t", dec = ".", h = T,comment.char = "?")
 for(i in 12:ncol(DWC)){
   DWC[, i] <-  gsub("^AA$", "A-A", DWC[, i])
   DWC[, i] <-  gsub("^TT$", "B-B", DWC[, i])
@@ -107,7 +111,7 @@ DWCt <- cbind(rep("DWC", nrow(DWCt)),DWCt)
 names(DWCt)[1] <- "population"
 
 # WEW
-WEW <- read.table("/home/danara/Documents/hierfstat/Fst-4-pops/ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_WEW_ROD.txt", sep = "\t", dec = ".", h = T,comment.char = "?")
+WEW <- read.table(file.path(current_dir, "ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_WEW_ROD.txt"), sep = "\t", dec = ".", h = T,comment.char = "?")
 for(i in 12:ncol(WEW)){
   WEW[, i] <-  gsub("^AA$", "A-A", WEW[, i])
   WEW[, i] <-  gsub("^TT$", "B-B", WEW[, i])
@@ -136,7 +140,7 @@ results <- foreach(i=1:3, .combine=cbind, .packages = "pegas")  %dopar% {
 }
 write.table(results, file="Fst_1M_permutations_DEW-DWL.txt", sep=",", row.names=T, col.names = NA, quote = FALSE)
 
-# Prepare an empty matrix for quantiles 
+# Prepare an empty matrix for quantiles
 N <- matrix(NA, ncol=2, nrow=nrow(results))
 # calculate the distribution, quantile 97.5 % and 99 %
 snps <- ncol(loci)-1
@@ -219,7 +223,7 @@ results <- foreach(i=1:1000000, .combine=cbind, .packages = "pegas")  %dopar% {
 }
 write.table(results, file="Fst_1M_permutations_WEW-DEW.txt", sep=",", row.names=T, col.names = NA, quote = FALSE)
 
-# Prepare an empty matrix for quantiles 
+# Prepare an empty matrix for quantiles
 N <- matrix(NA, ncol=2, nrow=nrow(results))
 # calculate the distribution, quantile
 snps <- ncol(loci)-1
@@ -302,7 +306,7 @@ results <- foreach(i=1:1000000, .combine=cbind, .packages = "pegas")  %dopar% {
 }
 write.table(results, file="Fst_1M_permutations_DWL-DWC.txt", sep=",", row.names=T, col.names = NA, quote = FALSE)
 
-# Prepare an empty matrix for quantiles 
+# Prepare an empty matrix for quantiles
 N <- matrix(NA, ncol=2, nrow=nrow(results))
 # calculate the distribution, quantile
 snps <- ncol(loci)-1
