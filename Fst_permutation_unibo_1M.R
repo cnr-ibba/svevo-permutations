@@ -4,6 +4,9 @@
 # get current directory as basedir
 current_dir <- getwd()
 
+# get current number of CPUs
+cores <- strtoi(Sys.getenv("CORES",unset = 4))
+
 #### Load libraries ####
 library(adegenet)
 library(pegas)
@@ -123,7 +126,7 @@ names(WEWt)[1] <- "population"
 
 #### (1) Fst for cross-population DEW - DWL ####
 # setup parallel backend to use many processors
-cores=detectCores()
+#cores=detectCores()
 cl <- makeCluster(cores[1]-1) #not to overload your computer
 #registerDoParallel(cores=2)
 registerDoParallel(cl)
@@ -193,7 +196,7 @@ Fst_pos_win <- winScan(x = Fstcomput,
                        win_size = 2000000,
                        win_step = 1000000,
                        funs = "mean",
-                       cores = 7)
+                       cores = cores)
 row.has.na <- apply(Fst_pos_win, 1, function(x){any(is.na(x))})
 Fst_pos_win <- Fst_pos_win[!row.has.na,]
 row.has.na <- apply(pos_win, 1, function(x){any(is.na(x))})
@@ -207,7 +210,7 @@ write.table(final_Fst, file="Fst_permutation_threshold_SW_DEW-DWL.txt", sep="\t"
 stopCluster(cl)
 
 #### (2) Fst for cross-population WEW - DEW ####
-cores=detectCores()
+# cores=detectCores()
 cl <- makeCluster(cores[1]-1)
 registerDoParallel(cl)
 DD <- rbind(WEWt, DEWt)
@@ -276,7 +279,7 @@ Fst_pos_win <- winScan(x = Fstcomput,
                        win_size = 2000000,
                        win_step = 1000000,
                        funs = "mean",
-                       cores = 7)
+                       cores = cores)
 row.has.na <- apply(Fst_pos_win, 1, function(x){any(is.na(x))})
 Fst_pos_win <- Fst_pos_win[!row.has.na,]
 row.has.na <- apply(pos_win, 1, function(x){any(is.na(x))})
@@ -290,7 +293,7 @@ write.table(final_Fst, file="Fst_permutation_threshold_SW_WEW-DEW.txt", sep="\t"
 stopCluster(cl)
 
 #### (3) Cross-population DWL - DWC ####
-cores=detectCores()
+# cores=detectCores()
 cl <- makeCluster(cores[1]-1)
 registerDoParallel(cl)
 DD <- rbind(DWLt, DWCt)
@@ -358,7 +361,7 @@ Fst_pos_win <- winScan(x = Fstcomput,
                        win_size = 2000000,
                        win_step = 1000000,
                        funs = "mean",
-                       cores = 7)
+                       cores = cores)
 row.has.na <- apply(Fst_pos_win, 1, function(x){any(is.na(x))})
 Fst_pos_win <- Fst_pos_win[!row.has.na,]
 row.has.na <- apply(pos_win, 1, function(x){any(is.na(x))})

@@ -1,9 +1,8 @@
 #! /bin/bash
 #PBS -d /storage/ormanbekovad/svevo_permutations
-#PBS -l nodes=1:ppn=64
+#PBS -l nodes=1:ppn=32
 #PBS -N FST-permutations
 #PBS -q general
-#PBS -j oe
 
 ##########################################
 #                                        #
@@ -34,6 +33,9 @@ echo "job $PBS_JOBNAME started: `whoami` `hostname` `pwd` `date`."
 #   Environment settings                 #
 #                                        #
 ##########################################
+
+# get reserved CPUs
+export CORES=$(wc -l $PBS_NODEFILE)
 
 # activate conda environment
 source activate R-3.4
