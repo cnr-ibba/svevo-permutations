@@ -133,7 +133,7 @@ loci <- as.loci(all_genind)
 loci <- loci[, !apply(loci, 2, function(x) length(levels(as.factor(x))) == 1)] # Get rid of monomorphic SNPs
 #loci <- loci[,1: 20,] #SUBSET TO TEST IF IT WORKS
 set.seed(100)
-results <- foreach(i=1:3, .combine=cbind, .packages = "pegas")  %dopar% {
+results <- foreach(i=1:1000000, .combine=cbind, .packages = "pegas")  %dopar% {
   tmp <- loci
   tmp$population <- tmp$population[sample(1:length(tmp$population))]
   Fst_unibo(tmp, pop = 1)
