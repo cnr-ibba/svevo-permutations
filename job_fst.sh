@@ -35,7 +35,7 @@ echo "job $PBS_JOBNAME started: `whoami` `hostname` `pwd` `date`."
 ##########################################
 
 # get reserved CPUs
-export CORES=$(wc -l $PBS_NODEFILE)
+export CORES=$(wc -l $PBS_NODEFILE | cut -f1 --delim=" ")
 
 # activate conda environment
 source activate R-3.4
