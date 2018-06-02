@@ -1,11 +1,14 @@
 
 # load common functions
-source("common.r")
+source("Fst_common.r")
 
 #### (1) Fst for cross-population DEW - DWL ####
 # setup parallel backend to use many processors
 # cores are defined in commons.r
 cl <- makeCluster(cores[1]-1) #not to overload your computer
+
+# permutations <- 1000000
+permutations <- 10
 
 registerDoParallel(cl)
 DD <- rbind(DEWt, DWLt)
@@ -13,7 +16,7 @@ all_genind <- df2genind(DD[2:ncol(DD)], NA.char = "NN", ploidy = 2, pop = DD$pop
 loci <- as.loci(all_genind)
 loci <- loci[, !apply(loci, 2, function(x) length(levels(as.factor(x))) == 1)] # Get rid of monomorphic SNPs
 set.seed(100)
-results <- foreach(i=1:1000000, .combine=cbind, .packages = "pegas")  %dopar% {
+results <- foreach(i=1:permutations, .combine=cbind, .packages = "pegas")  %dopar% {
   tmp <- loci
   tmp$population <- tmp$population[sample(1:length(tmp$population))]
   Fst_unibo(tmp, pop = 1)

@@ -9,7 +9,7 @@ current_dir <- getwd()
 cores <- strtoi(Sys.getenv("CORES",unset = 4))
 
 #### Load libraries ####
-# library(adegenet)
+library(adegenet)
 library(pegas)
 library(foreach)
 library(doParallel)
