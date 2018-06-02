@@ -1,7 +1,7 @@
 #! /bin/bash
 #PBS -d /storage/ormanbekovad/svevo_permutations
 #PBS -l nodes=1:ppn=64
-#PBS -N Fst_DEW_DWL
+#PBS -N Fst_WEW_DEW.R
 #PBS -q general
 
 ##########################################
@@ -47,7 +47,7 @@ source activate R-3.4
 ##########################################
 
 # executing Rscript
-Rscript --slave --vanilla Fst_DEW_DWL.R
+Rscript --slave --vanilla Fst_WEW_DEW.R
 
 ##########################################
 #                                        #

@@ -1,10 +1,15 @@
 
 # load common functions
-source("common.r")
+source("Fst_common.r")
 
 #### (3) Cross-population DWL - DWC ####
 # cores are defined in commons.r
 cl <- makeCluster(cores[1]-1)
+
+# permutations <- 1000000
+
+# lowering permutations
+permutations <- 10000
 
 registerDoParallel(cl)
 DD <- rbind(DWLt, DWCt)
@@ -13,7 +18,7 @@ loci <- as.loci(all_genind)
 loci <- loci[, !apply(loci, 2, function(x) length(levels(as.factor(x))) == 1)] # Get rid of monomorphic SNPs
 #loci <- loci[,1: 20,] #SUBSET TO TEST IF IT WORKS
 set.seed(100)
-results <- foreach(i=1:1000000, .combine=cbind, .packages = "pegas")  %dopar% {
+results <- foreach(i=1:permutations, .combine=cbind, .packages = "pegas")  %dopar% {
   tmp <- loci
   tmp$population <- tmp$population[sample(1:length(tmp$population))]
   Fst_unibo(tmp, pop = 1)

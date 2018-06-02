@@ -8,7 +8,9 @@ source("Fst_common.r")
 cl <- makeCluster(cores[1]-1) #not to overload your computer
 
 # permutations <- 1000000
-permutations <- 10
+
+# lowering permutations
+permutations <- 10000
 
 registerDoParallel(cl)
 DD <- rbind(DEWt, DWLt)
