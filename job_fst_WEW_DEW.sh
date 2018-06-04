@@ -1,7 +1,7 @@
 #! /bin/bash
-#PBS -d /storage/ormanbekovad/svevo_permutations
+#PBS -d /storage/cozzip/Projects/danara
 #PBS -l nodes=1:ppn=64
-#PBS -N Fst_WEW_DEW.R
+#PBS -N Fst_WEW_DEW
 #PBS -q general
 
 ##########################################

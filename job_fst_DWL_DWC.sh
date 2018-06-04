@@ -1,5 +1,5 @@
 #! /bin/bash
-#PBS -d /storage/ormanbekovad/svevo_permutations
+#PBS -d /storage/cozzip/Projects/danara
 #PBS -l nodes=1:ppn=64
 #PBS -N Fst_DWL_DWC
 #PBS -q general
