@@ -36,7 +36,7 @@ loci <- as.loci(all_genind)
 # Get rid of monomorphic SNPs
 loci <- loci[, !apply(loci, 2, function(x) length(levels(as.factor(x))) == 1)]
 
-#SUBSET TO TEST IF IT WORKS
+# SUBSET TO TEST IF IT WORKS
 loci <- loci[,1: 20,]
 
 # setting seed
@@ -58,7 +58,7 @@ N <- matrix(NA, ncol=3, nrow=nrow(results))
 snps <- ncol(loci)-1
 for(j in 1:nrow(results)){
   d <- density(results[j,])
-  q <- quantile(d,probs=c((1-(0.05/snps)),(1-(0.05/9946))), na.rm=TRUE)
+  q <- quantile(d,probs=c((1-(0.05/snps)),(1-(0.05/9946)), (1-(0.05/5775))), na.rm=TRUE)
   N[j,]=q
 }
 
