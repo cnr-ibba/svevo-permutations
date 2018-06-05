@@ -52,8 +52,6 @@ ROD_unibo <- function (x, pop = NULL) {
   return(obj)
 }
 
-# Import the table with chr and pos for each SNP, required for sliding window
-POS <- read.csv("/home/danara/Documents/hierRODat/ROD/snp_chr_pos.csv", header= TRUE, stringsAsFactors = FALSE, sep = ",")
 ##### Import and transform the data ####
 # Import the table with chr and pos for each SNP, required for sliding window
 POS <- read.csv("/home/danara/Documents/hierfstat/Fst/snp_chr_pos.csv", header= TRUE, stringsAsFactors = FALSE, sep = ",")
@@ -80,8 +78,9 @@ WEWt <- cbind(rep("WEW", nrow(WEWt)),WEWt)
 names(WEWt)[1] <- "population"
 
 #### (2) ROD for cross-population WEW - DEW ####
-cores=detectCores()
-cl <- makeCluster(cores[1]-1)
+#cores=detectCores()
+#cl <- makeCluster(cores[1]-1)
+cl <- makeCluster(50)
 registerDoParallel(cl)
 DD <- rbind(WEWt, DEWt)
 all_genind <- df2genind(DD[2:ncol(DD)], NA.char = "NN", ploidy = 2, pop = DD$population, sep = "-")
@@ -89,7 +88,7 @@ loci <- as.loci(all_genind)
 loci <- loci[, !apply(loci, 2, function(x) length(levels(as.factor(x))) == 1)] # Get rid of monomorphic SNPs
 #loci <- loci[,1: 20,] #SUBSET TO TEST IF IT WORKS
 set.seed(100)
-results <- foreach(i=1:1000000, .combine=cbind, .packages = "pegas")  %dopar% {
+results <- foreach(i=1:50000, .combine=cbind, .packages = "pegas")  %dopar% {
   tmp <- loci
   tmp$population <- tmp$population[sample(1:length(tmp$population))]
   ROD_unibo(tmp, pop = 1)
@@ -102,7 +101,7 @@ N <- matrix(NA, ncol=2, nrow=nrow(results))
 snps <- ncol(loci)-1
 for(j in 1:nrow(results)){
   d <- density(results[j,])
-  q <- quantile(d,probs=c((1-(0.05/snps)),(1-(0.05/9946))), na.rm=TRUE)
+  q <- quantile(d,probs=c((1-(0.05/snps)),(1-(0.05/9946)),(1-(0.05/5775))), na.rm=TRUE)
   N[j,]=q
 }
 
@@ -112,7 +111,8 @@ final_N <- cbind(N, RODcomput)
 final_N <- as.data.frame(final_N)
 final_N$delta_ROD1 <- (final_N$ROD - final_N$V1)
 final_N$delta_ROD2 <- (final_N$ROD - final_N$V2)
-names(final_N) <- c("soglia.1", "soglia.2", "ROD", "delta_ROD1", "delta_ROD2")
+final_N$delta_ROD3 <- (final_N$ROD - final_N$V3)
+names(final_N) <- c("soglia.1", "soglia.2","soglia.3", "ROD", "delta_ROD1", "delta_ROD2", "delta_ROD3")
 write.table(final_N, file="ROD_permutation_threshold_WEW-DEW.txt", sep="\t", col.names=NA, row.names=T, quote = FALSE)
 
 # calculate ROD effettivo con sliding window da 2 Mb e step 1 Mb
@@ -133,7 +133,7 @@ pos_win <- foreach(i = 3:ncol(results2), .combine=cbind, .packages = c("windowsc
                          funs = "mean")
   if(i == 3){pos_win_tmp[, c(1:4, 6)]}else{pos_win_tmp[, 6]}
 }
-names(pos_win)[5:6] <- c("soglia.1", "soglia.2")
+names(pos_win)[5:7] <- c("soglia.1", "soglia.2", "soglia.3")
 
 # calculate ROD effettivo
 #RODcomput <- ROD_unibo(loci)
@@ -158,6 +158,7 @@ final_ROD <- cbind(pos_win, ROD_pos_win$ROD_mean)
 final_N <- as.data.frame(final_N)
 final_ROD$delta_ROD1 <- (final_ROD$`ROD_pos_win$ROD_mean` - final_ROD$soglia.1)
 final_ROD$delta_ROD2 <- (final_ROD$`ROD_pos_win$ROD_mean` - final_ROD$soglia.2)
-names(final_ROD)[7] <- "ROD"
+final_ROD$delta_ROD3 <- (final_ROD$`ROD_pos_win$ROD_mean` - final_ROD$soglia.3)
+names(final_ROD)[8] <- "ROD"
 write.table(final_ROD, file="ROD_permutation_threshold_SW_WEW-DEW.txt", sep="\t", row.names=T, col.names = NA, quote = FALSE)
 stopCluster(cl)
