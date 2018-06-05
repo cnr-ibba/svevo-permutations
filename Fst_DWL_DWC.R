@@ -8,10 +8,7 @@ source("Fst_common.r")
 cl <- makeCluster(cores[1]-1) #not to overload your computer
 registerDoParallel(cl)
 
-# permutations <- 50000
-
-# lowering permutations (test)
-permutations <- 10
+permutations <- 50000
 
 # load data
 DWLt <- read_DWLt()
@@ -37,7 +34,7 @@ loci <- as.loci(all_genind)
 loci <- loci[, !apply(loci, 2, function(x) length(levels(as.factor(x))) == 1)]
 
 # SUBSET TO TEST IF IT WORKS
-loci <- loci[,1: 20,]
+# loci <- loci[,1: 20,]
 
 # setting seed
 set.seed(100)
