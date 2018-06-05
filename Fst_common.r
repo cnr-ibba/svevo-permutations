@@ -24,6 +24,7 @@ Fst_unibo <- function (x, pop = NULL)
 {
   if (any(getPloidy(x) != 2))
     stop("Fst() requires diploid data")
+
   if (is.null(pop)) {
     pop <- x$population
     if (is.null(pop))
@@ -34,11 +35,13 @@ Fst_unibo <- function (x, pop = NULL)
       x[, pop]
     else factor(pop)
   }
+
   r <- length(attr(pop, "levels"))
   pop <- as.integer(pop)
   nloci <- length(attr(x, "locicol"))
   ALLELES <- getAlleles(x)
   p <- vector("list", nloci)
+
   for (j in 1:nloci) p[[j]] <- matrix(0, r, length(ALLELES[[j]]))
   h <- p
   for (i in 1:r) {

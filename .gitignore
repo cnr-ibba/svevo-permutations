@@ -36,3 +36,6 @@ vignettes/*.pdf
 ld099/
 ld099.zip
 .Rproj.user
+
+# data files
+*.txt

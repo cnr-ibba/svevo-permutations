@@ -26,7 +26,7 @@ rm(DEWt)
 # calc genind
 all_genind <- df2genind(DD[, 2:ncol(DD)], NA.char = "NN", ploidy = 2, pop = DD$population, sep = '-', ncode = 2)
 
-# remove data
+# remove unnecessary data
 rm(DD)
 
 # transform loci
