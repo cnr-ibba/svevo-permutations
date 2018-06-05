@@ -84,11 +84,11 @@ Fst_unibo <- function (x, pop = NULL)
 
 ##### Import and transform the data ####
 # Import the table with chr and pos for each SNP, required for sliding window
-POS <- read.csv(file.path(current_dir, "ld099/snp_chr_pos.csv"), header= TRUE, stringsAsFactors = FALSE, sep = ",")
+POS <- read.csv(file.path(current_dir, "ld099/snp_chr_pos.csv"), header= TRUE, stringsAsFactors = FALSE, sep = ",", nrow=1000)
 
 read_DEWt <- function () {
   # DEW
-  DEW <- read.table(file.path(current_dir, "ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_DEW_ROD.txt"), sep = "\t", dec = ".", h = T,comment.char = "?")
+  DEW <- read.table(file.path(current_dir, "ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_DEW_ROD.txt"), sep = "\t", dec = ".", h = T,comment.char = "?", nrows=1000)
   for(i in 12:ncol(DEW)){
     DEW[, i] <-  gsub("^AA$", "A-A", DEW[, i])
     DEW[, i] <-  gsub("^TT$", "B-B", DEW[, i])
@@ -103,7 +103,7 @@ read_DEWt <- function () {
 
 read_DWLt <- function () {
   # DWL
-  DWL <- read.table(file.path(current_dir, "ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_DWL_ROD.txt"), sep = "\t", dec = ".", h = T,comment.char = "?")
+  DWL <- read.table(file.path(current_dir, "ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_DWL_ROD.txt"), sep = "\t", dec = ".", h = T,comment.char = "?", nrows=1000)
   for(i in 12:ncol(DWL)){
     DWL[, i] <-  gsub("^AA$", "A-A", DWL[, i])
     DWL[, i] <-  gsub("^TT$", "B-B", DWL[, i])
@@ -118,7 +118,7 @@ read_DWLt <- function () {
 
 read_DWCt <- function() {
   # DWC
-  DWC <- read.table(file.path(current_dir, "ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_DWC_ROD.txt"), sep = "\t", dec = ".", h = T,comment.char = "?")
+  DWC <- read.table(file.path(current_dir, "ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_DWC_ROD.txt"), sep = "\t", dec = ".", h = T,comment.char = "?", nrows=1000)
   for(i in 12:ncol(DWC)){
     DWC[, i] <-  gsub("^AA$", "A-A", DWC[, i])
     DWC[, i] <-  gsub("^TT$", "B-B", DWC[, i])
@@ -133,7 +133,7 @@ read_DWCt <- function() {
 
 read_WEWt <- function() {
   # WEW
-  WEW <- read.table(file.path(current_dir, "ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_WEW_ROD.txt"), sep = "\t", dec = ".", h = T,comment.char = "?")
+  WEW <- read.table(file.path(current_dir, "ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_WEW_ROD.txt"), sep = "\t", dec = ".", h = T,comment.char = "?", nrows = 1000)
   for(i in 12:ncol(WEW)){
     WEW[, i] <-  gsub("^AA$", "A-A", WEW[, i])
     WEW[, i] <-  gsub("^TT$", "B-B", WEW[, i])

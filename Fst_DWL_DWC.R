@@ -8,7 +8,7 @@ source("Fst_common.r")
 cl <- makeCluster(cores[1]-1) #not to overload your computer
 registerDoParallel(cl)
 
-permutations <- 50000
+permutations <- 10
 
 # load data
 DWLt <- read_DWLt()
