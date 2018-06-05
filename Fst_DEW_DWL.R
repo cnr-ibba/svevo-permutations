@@ -62,7 +62,8 @@ final_N <- cbind(N, Fstcomput)
 final_N <- as.data.frame(final_N)
 final_N$delta_Fst1 <- (final_N$Fst - final_N$V1)
 final_N$delta_Fst2 <- (final_N$Fst - final_N$V2)
-names(final_N) <- c("soglia.1", "soglia.2", "Fst", "delta_Fst1", "delta_Fst2")
+final_N$delta_Fst3 <- (final_N$Fst - final_N$V3)
+names(final_N) <- c("soglia.1", "soglia.2", "soglia.3", "Fst", "delta_Fst1", "delta_Fst2", "delta_Fst3")
 write.table(final_N, file="Fst_permutation_threshold_DEW-DWL.txt", sep="\t", col.names=NA, row.names=T, quote = FALSE)
 
 # calculate Fst effettivo con sliding window da 2 Mb e step 1 Mb
@@ -83,9 +84,10 @@ pos_win <- foreach(i = 3:ncol(results2), .combine=cbind, .packages = c("windowsc
                          funs = "mean")
   if(i == 3){pos_win_tmp[, c(1:4, 6)]}else{pos_win_tmp[, 6]}
 }
-names(pos_win)[5:6] <- c("soglia.1", "soglia.2")
+names(pos_win)[5:7] <- c("soglia.1", "soglia.2", "soglia.3")
 
 # calculate Fst effettivo
+#Fstcomput <- Fst_unibo(loci)
 Fstcomput <- as.data.frame(Fstcomput)
 Fstcomput <- add_column(Fstcomput, group = NA, pos =  NA, .before = "Fst")
 Fstcomput$group <- POS$chrom[match(row.names(Fstcomput), POS$SNP_ID)]
@@ -107,6 +109,7 @@ final_Fst <- cbind(pos_win, Fst_pos_win$Fst_mean)
 final_N <- as.data.frame(final_N)
 final_Fst$delta_Fst1 <- (final_Fst$`Fst_pos_win$Fst_mean` - final_Fst$soglia.1)
 final_Fst$delta_Fst2 <- (final_Fst$`Fst_pos_win$Fst_mean` - final_Fst$soglia.2)
-names(final_Fst)[7] <- "Fst"
+final_Fst$delta_Fst3 <- (final_Fst$`Fst_pos_win$Fst_mean` - final_Fst$soglia.3)
+names(final_Fst)[8] <- "Fst"
 write.table(final_Fst, file="Fst_permutation_threshold_SW_DEW-DWL.txt", sep="\t", row.names=T, col.names = NA, quote = FALSE)
 stopCluster(cl)
