@@ -52,7 +52,8 @@ toc()
 write.table(results, file=paste("Fst", permutations, "permutations_WEW-DEW.txt", sep="_"), sep=",", row.names=T, col.names = NA, quote = FALSE)
 
 # Prepare an empty matrix for quantiles
-N <- matrix(NA, ncol=2, nrow=nrow(results))
+N <- matrix(NA, ncol=3, nrow=nrow(results))
+
 # calculate the distribution, quantile 97.5 % and 99 %
 snps <- ncol(loci)-1
 for(j in 1:nrow(results)){

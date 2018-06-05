@@ -39,3 +39,6 @@ ld099.zip
 
 # data files
 *.txt
+
+# job output
+*.[oe][1-9]*
