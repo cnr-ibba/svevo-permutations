@@ -1,8 +1,7 @@
 #! /bin/bash
-#PBS -d /storage/cozzip/Projects/danara
 #PBS -l nodes=1:ppn=64
 #PBS -N Fst_DEW_DWL
-#PBS -q general
+#PBS -q core
 
 ##########################################
 #                                        #

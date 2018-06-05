@@ -3,31 +3,57 @@
 source("Fst_common.r")
 
 #### (2) Fst for cross-population WEW - DEW ####
+# setup parallel backend to use many processors
 # cores are defined in commons.r
-cl <- makeCluster(cores[1]-1)
-
-# permutations <- 1000000
-
-# lowering permutations
-permutations <- 10000
-
+cl <- makeCluster(cores[1]-1) #not to overload your computer
 registerDoParallel(cl)
+
+# permutations <- 50000
+
+# lowering permutations (test)
+permutations <- 10
+
+# load data
+DEWt <- read_DEWt()
+WEWt <- read_WEWt()
+
+# bind populations by row
 DD <- rbind(WEWt, DEWt)
-all_genind <- df2genind(DD[2:ncol(DD)], NA.char = "NN", ploidy = 2, pop = DD$population, sep = "-")
+
+# remove unnecessary data
+rm(WEWt)
+rm(DEWt)
+
+# calc genind
+all_genind <- df2genind(DD[2:ncol(DD)], NA.char = "NN", ploidy = 2, pop = DD$population, sep = '-')
+
+# remove unnecessary data
+rm(DD)
+
+# transform loci
 loci <- as.loci(all_genind)
-loci <- loci[, !apply(loci, 2, function(x) length(levels(as.factor(x))) == 1)] # Get rid of monomorphic SNPs
-#loci <- loci[,1: 20,] #SUBSET TO TEST IF IT WORKS
+
+# Get rid of monomorphic SNPs
+loci <- loci[, !apply(loci, 2, function(x) length(levels(as.factor(x))) == 1)]
+
+#SUBSET TO TEST IF IT WORKS
+loci <- loci[,1: 20,]
+
+# setting seed
 set.seed(100)
-results <- foreach(i=1:permutations, .combine=cbind, .packages = "pegas")  %dopar% {
+
+tic("Permutations")
+results <- foreach(i=1:permutations, .combine=cbind, .packages = c("pegas"))  %dopar% {
   tmp <- loci
   tmp$population <- tmp$population[sample(1:length(tmp$population))]
   Fst_unibo(tmp, pop = 1)
 }
-write.table(results, file="Fst_1M_permutations_WEW-DEW.txt", sep=",", row.names=T, col.names = NA, quote = FALSE)
+toc()
+write.table(results, file=paste("Fst", permutations, "permutations_WEW-DEW.txt", sep="_"), sep=",", row.names=T, col.names = NA, quote = FALSE)
 
 # Prepare an empty matrix for quantiles
 N <- matrix(NA, ncol=2, nrow=nrow(results))
-# calculate the distribution, quantile
+# calculate the distribution, quantile 97.5 % and 99 %
 snps <- ncol(loci)-1
 for(j in 1:nrow(results)){
   d <- density(results[j,])
@@ -75,7 +101,6 @@ Fst_pos_win <- winScan(x = Fstcomput,
                        groups = "group",
                        position = "pos",
                        values = "Fst",
-                       #values = c(results2[, 3: ncol(results2)]),
                        win_size = 2000000,
                        win_step = 1000000,
                        funs = "mean",

@@ -8,15 +8,16 @@ source("Fst_common.r")
 cl <- makeCluster(cores[1]-1) #not to overload your computer
 registerDoParallel(cl)
 
-# permutations <- 1000000
+# permutations <- 50000
 
-# lowering permutations
+# lowering permutations (test)
 permutations <- 10
 
 # load data
 DEWt <- read_DEWt()
 DWLt <- read_DWLt()
 
+# bind populations by row
 DD <- rbind(DEWt, DWLt)
 
 # remove unnecessary data
@@ -24,19 +25,23 @@ rm(DWLt)
 rm(DEWt)
 
 # calc genind
-all_genind <- df2genind(DD[, 2:ncol(DD)], NA.char = "NN", ploidy = 2, pop = DD$population, sep = '-', ncode = 2)
+all_genind <- df2genind(DD[2:ncol(DD)], NA.char = "NN", ploidy = 2, pop = DD$population, sep = '-')
 
 # remove unnecessary data
 rm(DD)
 
 # transform loci
 loci <- as.loci(all_genind)
-loci <- loci[, !apply(loci, 2, function(x) length(levels(as.factor(x))) == 1)] # Get rid of monomorphic SNPs
+
+# Get rid of monomorphic SNPs
+loci <- loci[, !apply(loci, 2, function(x) length(levels(as.factor(x))) == 1)]
+
+#SUBSET TO TEST IF IT WORKS
+loci <- loci[,1: 20,]
 
 # setting seed
 set.seed(100)
 
-# do permutations
 tic("Permutations")
 results <- foreach(i=1:permutations, .combine=cbind, .packages = c("pegas"))  %dopar% {
   tmp <- loci
@@ -96,7 +101,6 @@ Fst_pos_win <- winScan(x = Fstcomput,
                        groups = "group",
                        position = "pos",
                        values = "Fst",
-                       #values = c(results2[, 3: ncol(results2)]),
                        win_size = 2000000,
                        win_step = 1000000,
                        funs = "mean",
