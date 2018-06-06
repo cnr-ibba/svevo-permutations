@@ -1,6 +1,6 @@
 
 # load common functions
-source("Fst_common.r")
+source("common.r")
 
 #### (2) Fst for cross-population WEW - DEW ####
 # setup parallel backend to use many processors

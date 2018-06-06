@@ -82,6 +82,46 @@ Fst_unibo <- function (x, pop = NULL)
   obj
 }
 
+
+
+#### Load the ROD function ####
+ROD_unibo <- function (x, pop = NULL) {
+  pop <- as.factor(x$population)
+  r <- length(attr(pop, "levels"))
+  pop <- as.integer(pop)
+  nloci <- length(attr(x, "locicol"))
+  ALLELES <- getAlleles(x)
+  p <- vector("list", nloci)
+  for (j in 1:nloci) p[[j]] <- matrix(0, r, length(ALLELES[[j]]))
+  h <- p
+  for (i in 1:r) { #i = populations
+    s <- summary(x[pop == i, ])
+    for (j in 1:nloci) { # for wach marker
+      tmp <- s[[j]]
+      p[[j]][i, ] <- tmp$allele
+      allel <- names(tmp$allele)
+      genot <- names(tmp$genotype)
+      for (k in seq_along(allel)) {
+        for (l in (seq_along(genot))) {
+          ag <- unlist(strsplit(genot[l], "/"))
+          #if (sum(ag %in% allel[k]) == 1)
+          #  h[[j]][i, k] <- h[[j]][i, k] + tmp$genotype[l]
+        }
+      }
+    }
+  }
+  obj <- matrix(0, nloci, 1)
+  for (j in 1:nloci) {
+    nBYpop <- rowSums(p[[j]])
+    a_b <- (p[[j]]/nBYpop)^2
+    di <- 1-rowSums(a_b)
+    obj[j, 1] <- (di[1] + 0.1)/(di[2] + 0.1)
+  }
+  dimnames(obj) <- list(names(x)[attr(x, "locicol")], "ROD")
+  return(obj)
+}
+
+
 ##### Import and transform the data ####
 # Import the table with chr and pos for each SNP, required for sliding window
 POS <- read.csv(file.path(current_dir, "ld099/snp_chr_pos.csv"), header= TRUE, stringsAsFactors = FALSE, sep = ",", nrow=1000)
