@@ -8,7 +8,7 @@ source("common.r")
 cl <- makeCluster(cores[1]-1) #not to overload your computer
 registerDoParallel(cl)
 
-permutations <- 10
+# number of permutations are in common.r
 
 # load data
 DWLt <- read_DWLt()
@@ -46,7 +46,9 @@ results <- foreach(i=1:permutations, .combine=cbind, .packages = c("pegas"))  %d
   Fst_unibo(tmp, pop = 1)
 }
 toc()
-write.table(results, file=paste("Fst", permutations, "permutations_DWL-DWC.txt", sep="_"), sep=",", row.names=T, col.names = NA, quote = FALSE)
+# write.table(results, file=paste("Fst", permutations, "permutations_DWL-DWC.txt", sep="_"), sep=",", row.names=T, col.names = NA, quote = FALSE)
+dir.create(file.path(current_dir, "RData"), showWarnings = FALSE)
+saveRDS(results, file=paste("RData/Fst", permutations, "permutations_DWL-DWC.rds", sep="_"))
 
 # Prepare an empty matrix for quantiles
 N <- matrix(NA, ncol=3, nrow=nrow(results))

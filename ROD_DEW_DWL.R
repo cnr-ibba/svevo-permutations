@@ -1,3 +1,4 @@
+
 # load common functions
 source("common.r")
 
@@ -7,7 +8,7 @@ source("common.r")
 cl <- makeCluster(cores[1]-1) #not to overload your computer
 registerDoParallel(cl)
 
-permutations <- 10
+# number of permutations are in common.r
 
 # load data
 DEWt <- read_DEWt()
@@ -22,7 +23,6 @@ rm(DEWt)
 
 # calc genind
 all_genind <- df2genind(DD[2:ncol(DD)], NA.char = "NN", ploidy = 2, pop = DD$population, sep = '-')
-
 
 # remove unnecessary data
 rm(DD)
@@ -46,7 +46,9 @@ results <- foreach(i=1:permutations, .combine=cbind, .packages = "pegas")  %dopa
   ROD_unibo(tmp, pop = 1)
 }
 toc()
-write.table(results, file=paste("ROD", permutations, "permutations_DEW-DWL.txt", sep="_"), sep=",", row.names=T, col.names = NA, quote = FALSE)
+# write.table(results, file=paste("ROD", permutations, "permutations_DEW-DWL.txt", sep="_"), sep=",", row.names=T, col.names = NA, quote = FALSE)
+dir.create(file.path(current_dir, "RData"), showWarnings = FALSE)
+saveRDS(results, file=paste("RData/ROD", permutations, "permutations_DEW-DWL.rds", sep="_"))
 
 # Prepare an empty matrix for quantiles
 N <- matrix(NA, ncol=3, nrow=nrow(results))

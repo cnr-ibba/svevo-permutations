@@ -10,41 +10,54 @@ library(tibble)
 library(windowscanr)
 library(dplyr)
 
-#### Load the ROD function ####
-ROD_unibo <- function (x, pop = NULL) {
-  pop <- as.factor(x$population)
-  r <- length(attr(pop, "levels"))
-  pop <- as.integer(pop)
-  nloci <- length(attr(x, "locicol"))
-  ALLELES <- getAlleles(x)
-  p <- vector("list", nloci)
-  for (j in 1:nloci) p[[j]] <- matrix(0, r, length(ALLELES[[j]]))
-  h <- p
-  for (i in 1:r) { #i = populations
-    s <- summary(x[pop == i, ])
-    for (j in 1:nloci) { # for wach marker
-      tmp <- s[[j]]
-      p[[j]][i, ] <- tmp$allele
-      allel <- names(tmp$allele)
-      genot <- names(tmp$genotype)
-      for (k in seq_along(allel)) {
-        for (l in (seq_along(genot))) {
-          ag <- unlist(strsplit(genot[l], "/"))
-          #if (sum(ag %in% allel[k]) == 1) 
-          #  h[[j]][i, k] <- h[[j]][i, k] + tmp$genotype[l]
-        }
-      }
+#### Load the ROD modified function ####
+ROD_unibo <- function(x, pop = NULL, quiet = TRUE)
+{
+  NAMESX <- names(x)
+  if (is.null(pop)) {
+    ipop <- which(NAMESX == "population")
+    if (!length(ipop)) stop("no 'population' column in x")
+  } else {
+    if (is.numeric(pop) && length(pop) == 1) {
+      ipop <- pop
+    } else {
+      x$populationforthisanalysis <- factor(pop)
+      ipop <- length(x)
     }
   }
-  obj <- matrix(0, nloci, 1)
+  
+  LOCI <- attr(x, "locicol")
+  nloci <- length(LOCI)
+  
+  ## 'p' is a matrix with alleles as columns and populations
+  ##    as rows, and its entries are the counts
+  ## 'h' is the same with the number of heterozygotes
+  
+  res <- matrix(0, nloci, 1)
+  dimnames(res) <- list(NAMESX[LOCI], "ROD")
+  
   for (j in 1:nloci) {
-    nBYpop <- rowSums(p[[j]])
-    a_b <- (p[[j]]/nBYpop)^2
+    if (!quiet) cat("\rAnalyzing locus", j, "/", nloci)
+    Z <- x[, c(LOCI[j], ipop)]
+    Z <- na.omit(Z) # all n's are calculated locus-wise (2018-04-20)
+    N <- nrow(Z)
+    nBYpop <- tabulate(Z$pop)
+    r <- length(nBYpop) # number of pops
+    ALLELES <- getAlleles(Z)[[1]]
+    p <- matrix(0, r, length(ALLELES))
+    for (i in 1:r) {
+      s <- summary(Z[as.integer(Z$pop) == i, ])[[1]] # levels are preserved
+      allel <- names(s$allele)
+      genot <- names(s$genotype)
+      p[i, ] <- s$allele
+    }
+    nBYpop <- rowSums(p)
+    a_b <- (p/nBYpop)^2
     di <- 1-rowSums(a_b)
-    obj[j, 1] <- (di[1] + 0.1)/(di[2] + 0.1)
+    res[j, 1] <- (di[1] + 0.1)/(di[2] + 0.1)
   }
-  dimnames(obj) <- list(names(x)[attr(x, "locicol")], "ROD")
-  return(obj)
+  if (!quiet) cat("... Done.\n")
+  res
 }
 
 ##### Import and transform the data ####
@@ -84,12 +97,13 @@ loci <- as.loci(all_genind)
 loci <- loci[, !apply(loci, 2, function(x) length(levels(as.factor(x))) == 1)] # Get rid of monomorphic SNPs
 #loci <- loci[,1: 20,] #SUBSET TO TEST IF IT WORKS
 set.seed(100)
-results <- foreach(i=1:50000, .combine=cbind, .packages = "pegas")  %dopar% {
+results <- foreach(i=1:100000, .combine=cbind, .packages = "pegas")  %dopar% {
   tmp <- loci
   tmp$population <- tmp$population[sample(1:length(tmp$population))]
   ROD_unibo(tmp, pop = 1)
 }
-write.table(results, file="ROD_1M_permutations_DWL-DWC.txt", sep=",", row.names=T, col.names = NA, quote = FALSE)
+saveRDS(results, file = "RData/ROD_1M_permutationS_DWL-DWC.rds")
+#write.table(results, file="ROD_1M_permutations_DWL-DWC.txt", sep=",", row.names=T, col.names = NA, quote = FALSE)
 
 # Prepare an empty matrix for quantiles 
 N <- matrix(NA, ncol=3, nrow=nrow(results))
@@ -102,7 +116,7 @@ for(j in 1:nrow(results)){
 }
 
 # calculate ROD effettivo senza sliding window
-RODcomput <- ROD_unibo(loci)
+RODcomput3 <- ROD_unibo(loci)
 final_N <- cbind(N, RODcomput)
 final_N <- as.data.frame(final_N)
 final_N$delta_ROD1 <- (final_N$ROD - final_N$V1)
