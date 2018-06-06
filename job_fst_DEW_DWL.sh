@@ -55,7 +55,7 @@ Rscript --slave --vanilla Fst_DEW_DWL.R
 ##########################################
 
 # compressing file
-pigz --processes $CORES *DEW-DWL.txt
+pigz --processes $CORES Fst*DEW-DWL.txt
 
 # finishing job
 echo "job $PBS_JOBNAME finished `whoami` `hostname` `pwd` `date`."

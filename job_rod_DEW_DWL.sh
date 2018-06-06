@@ -1,6 +1,6 @@
 #! /bin/bash
 #PBS -l nodes=1:ppn=64
-#PBS -N Fst_DWL_DWC
+#PBS -N ROD_DEW_DWL
 #PBS -q core
 
 ##########################################
@@ -46,7 +46,7 @@ source activate R-3.3
 ##########################################
 
 # executing Rscript
-Rscript --slave --vanilla Fst_DWL_DWC.R
+Rscript --slave --vanilla ROD_DEW_DWL.R
 
 ##########################################
 #                                        #
@@ -55,7 +55,7 @@ Rscript --slave --vanilla Fst_DWL_DWC.R
 ##########################################
 
 # compressing file
-pigz --processes $CORES Fst*DWL-DWC.txt
+pigz --processes $CORES ROD*DEW-DWL.txt
 
 # finishing job
 echo "job $PBS_JOBNAME finished `whoami` `hostname` `pwd` `date`."
