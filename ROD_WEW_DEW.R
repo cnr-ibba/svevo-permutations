@@ -1,116 +1,59 @@
-# set as working directory
-setwd("/home/danara/Documents/hierfstat/ROD");
-#### Load libraries ####
-library(adegenet)
-library(pegas)
-library(foreach)
-library(doParallel)
-library(spatstat)
-library(tibble)
-library(windowscanr)
-library(dplyr)
 
-#### Load the ROD modified function ####
-ROD_unibo <- function(x, pop = NULL, quiet = TRUE)
-{
-  NAMESX <- names(x)
-  if (is.null(pop)) {
-    ipop <- which(NAMESX == "population")
-    if (!length(ipop)) stop("no 'population' column in x")
-  } else {
-    if (is.numeric(pop) && length(pop) == 1) {
-      ipop <- pop
-    } else {
-      x$populationforthisanalysis <- factor(pop)
-      ipop <- length(x)
-    }
-  }
-  
-  LOCI <- attr(x, "locicol")
-  nloci <- length(LOCI)
-  
-  ## 'p' is a matrix with alleles as columns and populations
-  ##    as rows, and its entries are the counts
-  ## 'h' is the same with the number of heterozygotes
-  
-  res <- matrix(0, nloci, 1)
-  dimnames(res) <- list(NAMESX[LOCI], "ROD")
-  
-  for (j in 1:nloci) {
-    if (!quiet) cat("\rAnalyzing locus", j, "/", nloci)
-    Z <- x[, c(LOCI[j], ipop)]
-    Z <- na.omit(Z) # all n's are calculated locus-wise (2018-04-20)
-    N <- nrow(Z)
-    nBYpop <- tabulate(Z$pop)
-    r <- length(nBYpop) # number of pops
-    ALLELES <- getAlleles(Z)[[1]]
-    p <- matrix(0, r, length(ALLELES))
-    for (i in 1:r) {
-      s <- summary(Z[as.integer(Z$pop) == i, ])[[1]] # levels are preserved
-      allel <- names(s$allele)
-      genot <- names(s$genotype)
-      p[i, ] <- s$allele
-    }
-    nBYpop <- rowSums(p)
-    a_b <- (p/nBYpop)^2
-    di <- 1-rowSums(a_b)
-    res[j, 1] <- (di[1] + 0.1)/(di[2] + 0.1)
-  }
-  if (!quiet) cat("... Done.\n")
-  res
-}
-
-##### Import and transform the data ####
-# Import the table with chr and pos for each SNP, required for sliding window
-POS <- read.csv("/home/danara/Documents/hierfstat/Fst-4-pops/ld099/snp_chr_pos.csv", header= TRUE, stringsAsFactors = FALSE, sep = ",")
-# DEW
-DEW <- read.table("/home/danara/Documents/hierfstat/Fst-4-pops/ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_DEW_ROD.txt", sep = "\t", dec = ".", h = T,comment.char = "?")
-for(i in 12:ncol(DEW)){
-  DEW[, i] <-  gsub("^AA$", "A-A", DEW[, i])
-  DEW[, i] <-  gsub("^TT$", "B-B", DEW[, i])
-}
-DEWt <- as.data.frame(t(DEW[, 12:ncol(DEW)]))
-names(DEWt) <- DEW[, 1]
-DEWt <- cbind(rep("DEW", nrow(DEWt)),DEWt)
-names(DEWt)[1] <- "population"
-
-# WEW
-WEW <- read.table("/home/danara/Documents/hierfstat/Fst-4-pops/ld099/180422_SvevoDiversity_SNPfiltered_file_all_17340K_SNP_1765_genot_NOT_IMPUTED_LD099_maxNN_025 V2_WEW_ROD.txt", sep = "\t", dec = ".", h = T,comment.char = "?")
-for(i in 12:ncol(WEW)){
-  WEW[, i] <-  gsub("^AA$", "A-A", WEW[, i])
-  WEW[, i] <-  gsub("^TT$", "B-B", WEW[, i])
-}
-WEWt <- as.data.frame(t(WEW[, 12:ncol(WEW)]))
-names(WEWt) <- WEW[, 1]
-WEWt <- cbind(rep("WEW", nrow(WEWt)),WEWt)
-names(WEWt)[1] <- "population"
+# load common functions
+source("common.r")
 
 #### (2) ROD for cross-population WEW - DEW ####
-#cores=detectCores()
-#cl <- makeCluster(cores[1]-1)
-#start.time <- Sys.time()
-cl <- makeCluster(5)
+# setup parallel backend to use many processors
+# cores are defined in commons.r
+cl <- makeCluster(cores[1]-1) #not to overload your computer
 registerDoParallel(cl)
-DD <- rbind(WEWt, DEWt)
-all_genind <- df2genind(DD[2:ncol(DD)], NA.char = "NN", ploidy = 2, pop = DD$population, sep = "-")
+
+# number of permutations are in common.r
+
+# load data
+DEWt <- read_DEWt()
+WEWt <- read_WEWt()
+
+# bind populations by row
+DD <- rbind(DEWt, WEWt)
+
+# remove unnecessary data
+rm(DEWt)
+rm(WEWt)
+
+# calc genind
+all_genind <- df2genind(DD[2:ncol(DD)], NA.char = "NN", ploidy = 2, pop = DD$population, sep = '-')
+
+# remove unnecessary data
+rm(DD)
+
+# transform loci
 loci <- as.loci(all_genind)
-loci <- loci[, !apply(loci, 2, function(x) length(levels(as.factor(x))) == 1)] # Get rid of monomorphic SNPs
-#loci <- loci[,1: 20,] #SUBSET TO TEST IF IT WORKS
+
+# Get rid of monomorphic SNPs
+loci <- loci[, !apply(loci, 2, function(x) length(levels(as.factor(x))) == 1)]
+
+# SUBSET TO TEST IF IT WORKS
+# loci <- loci[,1: 20,]
+
+# setting seed
 set.seed(100)
-results <- foreach(i=1:100000, .combine=cbind, .packages = "pegas")  %dopar% {
+
+tic("Permutations")
+results <- foreach(i=1:permutations, .combine=cbind, .packages = "pegas")  %dopar% {
   tmp <- loci
   tmp$population <- tmp$population[sample(1:length(tmp$population))]
   ROD_unibo(tmp, pop = 1)
 }
-#end.time <- Sys.time()
-#time.taken <- end.time - start.time
-#time.taken
-saveRDS(results, file = "RData/ROD_1M_permutations_WEW-DEW.rds")
-#write.table(results, file="ROD_1M_permutations_WEW-DEW.txt", sep=",", row.names=T, col.names = NA, quote = FALSE)
+toc()
+# write.table(results, file=paste("ROD", permutations, "permutations_WEW-DEW.txt", sep="_"), sep=",", row.names=T, col.names = NA, quote = FALSE)
+dir.create(file.path(current_dir, "RData"), showWarnings = FALSE)
+saveRDS(results, file=paste("RData/ROD", permutations, "permutations_WEW-DEW.rds", sep="_"))
 
-# Prepare an empty matrix for quantiles 
+# Prepare an empty matrix for quantiles
 N <- matrix(NA, ncol=3, nrow=nrow(results))
-# calculate the distribution, quantile
+
+# calculate the distribution, quantile 97.5 % and 99 %
 snps <- ncol(loci)-1
 for(j in 1:nrow(results)){
   d <- density(results[j,])
@@ -158,7 +101,6 @@ ROD_pos_win <- winScan(x = RODcomput,
                        groups = "group",
                        position = "pos",
                        values = "ROD",
-                       #values = c(results2[, 3: ncol(results2)]),
                        win_size = 2000000,
                        win_step = 1000000,
                        funs = "mean",
