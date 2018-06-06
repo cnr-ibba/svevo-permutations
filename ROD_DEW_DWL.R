@@ -30,23 +30,18 @@ ROD_unibo <- function (x, pop = NULL) {
       for (k in seq_along(allel)) {
         for (l in (seq_along(genot))) {
           ag <- unlist(strsplit(genot[l], "/"))
-          if (sum(ag %in% allel[k]) == 1) 
-            h[[j]][i, k] <- h[[j]][i, k] + tmp$genotype[l]
+          #if (sum(ag %in% allel[k]) == 1) 
+          #  h[[j]][i, k] <- h[[j]][i, k] + tmp$genotype[l]
         }
       }
     }
   }
   obj <- matrix(0, nloci, 1)
-  for (i in 1:length(p)) {
-    s1 <- sum(unlist(p[[i]][1,1:2]))
-    a1 <- (p[[i]][1,1]/s1)^2
-    b1 <- (p[[i]][1,2]/s1)^2
-    di1 <- 1-(a1+b1)
-    s2 <- sum(unlist(p[[i]][2,1:2]))
-    a2 <- (p[[i]][2,1]/s2)^2
-    b2 <- (p[[i]][2,2]/s2)^2
-    di2 <- 1-(a2+b2)
-    obj[i, 1] <- (di1 + 0.1)/(di2 + 0.1)
+  for (j in 1:nloci) {
+    nBYpop <- rowSums(p[[j]])
+    a_b <- (p[[j]]/nBYpop)^2
+    di <- 1-rowSums(a_b)
+    obj[j, 1] <- (di[1] + 0.1)/(di[2] + 0.1)
   }
   dimnames(obj) <- list(names(x)[attr(x, "locicol")], "ROD")
   return(obj)

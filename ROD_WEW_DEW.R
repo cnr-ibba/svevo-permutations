@@ -30,28 +30,22 @@ ROD_unibo <- function (x, pop = NULL) {
       for (k in seq_along(allel)) {
         for (l in (seq_along(genot))) {
           ag <- unlist(strsplit(genot[l], "/"))
-          if (sum(ag %in% allel[k]) == 1) 
-            h[[j]][i, k] <- h[[j]][i, k] + tmp$genotype[l]
+          #if (sum(ag %in% allel[k]) == 1) 
+          #  h[[j]][i, k] <- h[[j]][i, k] + tmp$genotype[l]
         }
       }
     }
   }
   obj <- matrix(0, nloci, 1)
-  for (i in 1:length(p)) {
-    s1 <- sum(unlist(p[[i]][1,1:2]))
-    a1 <- (p[[i]][1,1]/s1)^2
-    b1 <- (p[[i]][1,2]/s1)^2
-    di1 <- 1-(a1+b1)
-    s2 <- sum(unlist(p[[i]][2,1:2]))
-    a2 <- (p[[i]][2,1]/s2)^2
-    b2 <- (p[[i]][2,2]/s2)^2
-    di2 <- 1-(a2+b2)
-    obj[i, 1] <- (di1 + 0.1)/(di2 + 0.1)
+  for (j in 1:nloci) {
+    nBYpop <- rowSums(p[[j]])
+    a_b <- (p[[j]]/nBYpop)^2
+    di <- 1-rowSums(a_b)
+    obj[j, 1] <- (di[1] + 0.1)/(di[2] + 0.1)
   }
   dimnames(obj) <- list(names(x)[attr(x, "locicol")], "ROD")
   return(obj)
 }
-
 ##### Import and transform the data ####
 # Import the table with chr and pos for each SNP, required for sliding window
 POS <- read.csv("/home/danara/Documents/hierfstat/Fst/snp_chr_pos.csv", header= TRUE, stringsAsFactors = FALSE, sep = ",")
@@ -80,6 +74,7 @@ names(WEWt)[1] <- "population"
 #### (2) ROD for cross-population WEW - DEW ####
 #cores=detectCores()
 #cl <- makeCluster(cores[1]-1)
+#start.time <- Sys.time()
 cl <- makeCluster(50)
 registerDoParallel(cl)
 DD <- rbind(WEWt, DEWt)
@@ -93,10 +88,13 @@ results <- foreach(i=1:50000, .combine=cbind, .packages = "pegas")  %dopar% {
   tmp$population <- tmp$population[sample(1:length(tmp$population))]
   ROD_unibo(tmp, pop = 1)
 }
+#end.time <- Sys.time()
+#time.taken <- end.time - start.time
+#time.taken
 write.table(results, file="ROD_1M_permutations_WEW-DEW.txt", sep=",", row.names=T, col.names = NA, quote = FALSE)
 
 # Prepare an empty matrix for quantiles 
-N <- matrix(NA, ncol=2, nrow=nrow(results))
+N <- matrix(NA, ncol=3, nrow=nrow(results))
 # calculate the distribution, quantile
 snps <- ncol(loci)-1
 for(j in 1:nrow(results)){
