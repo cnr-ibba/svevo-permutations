@@ -15,7 +15,7 @@ DEWt <- read_DEWt()
 WEWt <- read_WEWt()
 
 # bind populations by row
-DD <- rbind(DEWt, WEWt)
+DD <- rbind(WEWt, DEWt)
 
 # remove unnecessary data
 rm(DEWt)
@@ -104,7 +104,7 @@ ROD_pos_win <- winScan(x = RODcomput,
                        win_size = 2000000,
                        win_step = 1000000,
                        funs = "mean",
-                       cores = 7)
+                       cores = cores[1]-1)
 row.has.na <- apply(ROD_pos_win, 1, function(x){any(is.na(x))})
 ROD_pos_win <- ROD_pos_win[!row.has.na,]
 row.has.na <- apply(pos_win, 1, function(x){any(is.na(x))})
